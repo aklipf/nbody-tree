@@ -17,8 +17,8 @@ distance metric function.
 # Examples
 
 ```rust
-    use kiddo::KdTree;
-    use kiddo::SquaredEuclidean;
+    use nbody_tree::KdTree;
+    use nbody_tree::SquaredEuclidean;
 
     ",
             $doctest_build_tree,
@@ -43,28 +43,6 @@ where
         "let mut tree: KdTree<f64, 3> = KdTree::new();
     tree.add(&[1.0, 2.0, 5.0], 100);
     tree.add(&[2.0, 3.0, 6.0], 101);"
-    );
-}
-
-#[cfg(feature = "rkyv")]
-use crate::float::kdtree::ArchivedKdTree;
-#[cfg(feature = "rkyv")]
-impl<
-        A: Axis + rkyv::Archive<Archived = A>,
-        T: Content + rkyv::Archive<Archived = T>,
-        const K: usize,
-        const B: usize,
-        IDX: Index<T = IDX> + rkyv::Archive<Archived = IDX>,
-    > ArchivedKdTree<A, T, K, B, IDX>
-where
-    usize: Cast<IDX>,
-{
-    generate_float_nearest_n!(
-        "use std::fs::File;
-    use memmap::MmapOptions;
-
-    let mmap = unsafe { MmapOptions::new().map(&File::open(\"./examples/float-doctest-tree.rkyv\").unwrap()).unwrap() };
-    let tree = unsafe { rkyv::archived_root::<KdTree<f64, 3>>(&mmap) };"
     );
 }
 

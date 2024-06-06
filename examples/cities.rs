@@ -8,7 +8,7 @@ use std::fmt::Formatter;
 use std::fs::File;
 
 use csv::Reader;
-use kiddo::float::{distance::SquaredEuclidean, kdtree::KdTree};
+use nbody_tree::float::{distance::SquaredEuclidean, kdtree::KdTree};
 use serde::Deserialize;
 
 #[allow(dead_code)]

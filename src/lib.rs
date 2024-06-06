@@ -1,12 +1,8 @@
-#![cfg_attr(feature = "simd", feature(slice_as_chunks))]
-#![cfg_attr(feature = "global_allocate", feature(allocator_api))]
 #![warn(rustdoc::missing_crate_level_docs)]
 #![deny(rustdoc::invalid_codeblock_attributes)]
 #![warn(missing_docs)]
 #![warn(rustdoc::broken_intra_doc_links)]
 #![warn(rustdoc::private_intra_doc_links)]
-#![doc(html_root_url = "https://docs.rs/kiddo/3.0.0")]
-#![doc(issue_tracker_base_url = "https://github.com/sdd/kiddo/issues/")]
 
 //! # Kiddo
 //!
@@ -28,19 +24,11 @@
 //!  - Find all items [within](`float::kdtree::KdTree::within`) a specified radius of a query point;
 //!  - Find the ["best" n item(s) within](`float::kdtree::KdTree::best_n_within`) a specified distance of a query point, for some definition of "best"
 //!
-//! ## Installation
-//!
-//! Add `kiddo` to `Cargo.toml`
-//! ```toml
-//! [dependencies]
-//! kiddo = "4.2.0"
-//! ```
-//!
 //! ## Usage
 //! ```rust
-//! use kiddo::KdTree;
-//! use kiddo::SquaredEuclidean;
-//! use kiddo::NearestNeighbour;
+//! use nbody_tree::KdTree;
+//! use nbody_tree::SquaredEuclidean;
+//! use nbody_tree::NearestNeighbour;
 //!
 //! let entries = vec![
 //!     [0f64, 0f64],
@@ -49,7 +37,7 @@
 //!     [3f64, 3f64]
 //! ];
 //!
-//! // use the kiddo::KdTree type to get up and running quickly with default settings
+//! // use the nbody_tree::KdTree type to get up and running quickly with default settings
 //! let mut kdtree: KdTree<_, 2> = (&entries).into();
 //!
 //! // How many items are in tree?
@@ -72,26 +60,14 @@
 //! See the [examples documentation](https://github.com/sdd/kiddo/tree/master/examples) for some more in-depth examples.
 //! ## Optional Features
 
-//! The Kiddo crate exposes the following features. Any labelled as **(NIGHTLY)** are not available on `stable` Rust as they require some unstable features. You'll need to build with `nightly` in order to user them.
-//! * **serialize** - serialization / deserialization via [`Serde`](https://docs.rs/serde/latest/serde/)
-//! * **serialize_rkyv** - zero-copy serialization / deserialization via [`Rkyv`](https://docs.rs/rkyv/latest/rkyv/)
-//! * `global_allocate` **(NIGHTLY)** -  When enabled Kiddo will use the unstable allocator_api feature within [`ImmutableKdTree`](`immutable::float::kdtree::ImmutableKdTree`) to get a slight performance improvement when allocating space for leaves.
-//! * `simd` **(NIGHTLY)** - enables some hand written SIMD and pre-fetch intrinsics code within [`ImmutableKdTree`](`immutable::float::kdtree::ImmutableKdTree`) that may improve performance (currently only on nearest_one with `f64`)
-//! * `f16` - enables usage of `f16` from the `half` crate for float trees.
-
 #[macro_use]
 extern crate doc_comment;
 
 pub mod best_neighbour;
 #[doc(hidden)]
 pub(crate) mod common;
-#[cfg(feature = "serialize")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "serialize")))]
-mod custom_serde;
 pub mod distance_metric;
-pub mod fixed;
 pub mod float;
-pub mod immutable;
 mod mirror_select_nth_unstable_by;
 pub mod nearest_neighbour;
 #[doc(hidden)]
@@ -104,8 +80,6 @@ mod iter;
 #[cfg(any(target_arch = "x86_64", target_arch = "aarch64"))]
 pub mod within_unsorted_iter;
 
-#[doc(hidden)]
-pub mod float_leaf_simd;
 
 /// A floating-point k-d tree with default parameters.
 ///
@@ -115,16 +89,6 @@ pub mod float_leaf_simd;
 /// To manually specify more advanced parameters, use [`KdTree`](`float::kdtree::KdTree`) directly.
 /// To store positions using integer or fixed-point types, use [`fixed::kdtree::KdTree`].
 pub type KdTree<A, const K: usize> = float::kdtree::KdTree<A, u64, K, 32, u32>;
-
-/// An immutable floating-point k-d tree with default parameters.
-///
-/// `A` is the floating point type (`f32` or `f64`, or `f16` if the `f16` feature is enabled).
-/// `K` is the number of dimensions. See [`ImmutableKdTree`](`immutable::float::kdtree::ImmutableKdTree`) for details of how to use.
-///
-/// To manually specify more advanced parameters, use [`ImmutableKdTree`](`immutable::float::kdtree::ImmutableKdTree`) directly.
-/// To store positions using integer or fixed-point types, use [`fixed::kdtree::KdTree`].
-pub type ImmutableKdTree<A, const K: usize> =
-    immutable::float::kdtree::ImmutableKdTree<A, u64, K, 32>;
 
 pub use best_neighbour::BestNeighbour;
 pub use float::distance::Manhattan;

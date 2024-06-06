@@ -37,14 +37,6 @@ impl<T: FloatCore + Default + Debug + Copy + Sync + Send + std::ops::AddAssign> 
     }
 }
 
-// TODO: make LeafNode and StemNode `pub(crate)` so that they,
-//       and their Archived types, don't show up in docs.
-//       This is tricky due to encountering this problem:
-//       https://github.com/rkyv/rkyv/issues/275
-/* #[cfg_attr(
-    feature = "serialize_rkyv",
-    omit_bounds
-)] */
 
 /// Floating point k-d tree
 ///
@@ -54,11 +46,6 @@ impl<T: FloatCore + Default + Debug + Copy + Sync + Send + std::ops::AddAssign> 
 ///
 /// A convenient type alias exists for KdTree with some sensible defaults set: [`kiddo::KdTree`](`crate::KdTree`).
 
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serialize_rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
-)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct KdTree<A: Copy + Default, T: Copy + Default, const K: usize, const B: usize, IDX> {
     pub(crate) leaves: Vec<LeafNode<A, T, K, B, IDX>>,
@@ -68,11 +55,6 @@ pub struct KdTree<A: Copy + Default, T: Copy + Default, const K: usize, const B:
 }
 
 #[doc(hidden)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serialize_rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
-)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct StemNode<A: Copy + Default, const K: usize, IDX> {
     pub(crate) left: IDX,
@@ -81,32 +63,11 @@ pub struct StemNode<A: Copy + Default, const K: usize, IDX> {
 }
 
 #[doc(hidden)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serialize_rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
-)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeafNode<A: Copy + Default, T: Copy + Default, const K: usize, const B: usize, IDX> {
-    #[cfg_attr(
-        feature = "serialize",
-        serde(with = "crate::custom_serde::array_of_arrays")
-    )]
-    #[cfg_attr(
-        feature = "serialize",
-        serde(bound(serialize = "A: Serialize", deserialize = "A: Deserialize<'de>"))
-    )]
     // TODO: Refactor content_points to be [[A; B]; K] to see if this helps vectorisation
     pub content_points: [[A; K]; B],
 
-    #[cfg_attr(feature = "serialize", serde(with = "crate::custom_serde::array"))]
-    #[cfg_attr(
-        feature = "serialize",
-        serde(bound(
-            serialize = "A: Serialize, T: Serialize",
-            deserialize = "A: Deserialize<'de>, T: Deserialize<'de> + Copy + Default"
-        ))
-    )]
     pub content_items: [T; B],
 
     pub size: IDX,
@@ -154,7 +115,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use kiddo::KdTree;
+    /// use nbody_tree::KdTree;
     ///
     /// let mut tree: KdTree<f64, 3> = KdTree::new();
     ///
@@ -172,7 +133,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use kiddo::KdTree;
+    /// use nbody_tree::KdTree;
     ///
     /// let mut tree: KdTree<f64, 3> = KdTree::with_capacity(1_000_000);
     ///
@@ -199,7 +160,7 @@ where
     ///
 
     /// ```
-    /// use kiddo::KdTree;
+    /// use nbody_tree::KdTree;
     ///
     /// let mut tree: KdTree<f64, 3> = KdTree::new();
     /// tree.add(&[1.0f64, 2.0f64, 3.0f64], 10);
@@ -257,7 +218,7 @@ macro_rules! generate_common_methods {
         /// # Examples
         ///
         /// ```rust
-        /// use kiddo::KdTree;
+        /// use nbody_tree::KdTree;
         ///
         /// let mut tree: KdTree<f64, 3> = KdTree::new();
         ///
@@ -283,19 +244,6 @@ where
     generate_common_methods!(KdTree);
 }
 
-#[cfg(feature = "rkyv")]
-impl<
-        A: Axis + rkyv::Archive<Archived = A>,
-        T: Content + rkyv::Archive<Archived = T>,
-        const K: usize,
-        const B: usize,
-        IDX: Index<T = IDX> + rkyv::Archive<Archived = IDX>,
-    > ArchivedKdTree<A, T, K, B, IDX>
-where
-    usize: Cast<IDX>,
-{
-    generate_common_methods!(ArchivedKdTree);
-}
 
 #[cfg(test)]
 mod tests {

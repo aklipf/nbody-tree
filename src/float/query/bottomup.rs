@@ -5,12 +5,12 @@ use crate::float::kdtree::{Axis, KdTree};
 use crate::nearest_neighbour::NearestNeighbour;
 use crate::types::{Content, Index};
 
-use crate::generate_within;
+use crate::generate_bottomup;
 
-macro_rules! generate_float_within {
+macro_rules! generate_float_bottomup {
     ($doctest_build_tree:tt) => {
-        generate_within!((
-            "Finds all elements within `dist` of `query`, using the specified
+        generate_bottomup!((
+            "Finds all elements bottomup `dist` of `query`, using the specified
 distance metric function.
 
 Results are returned sorted nearest-first
@@ -24,9 +24,9 @@ Results are returned sorted nearest-first
             $doctest_build_tree,
             "
 
-    let within = tree.within::<SquaredEuclidean>(&[1.0, 2.0, 5.0], 10f64);
+    let bottomup = tree.bottomup::<SquaredEuclidean>(&[1.0, 2.0, 5.0], 10f64);
 
-    assert_eq!(within.len(), 2);
+    assert_eq!(bottomup.len(), 2);
 ```"
         ));
     };
@@ -37,7 +37,7 @@ impl<A: Axis, T: Content, const K: usize, const B: usize, IDX: Index<T = IDX>>
 where
     usize: Cast<IDX>,
 {
-    generate_float_within!(
+    generate_float_bottomup!(
         "
 let mut tree: KdTree<f64, 3> = KdTree::new();
 tree.add(&[1.0, 2.0, 5.0], 100);
@@ -57,7 +57,7 @@ mod tests {
     type AX = f32;
 
     #[test]
-    fn can_query_items_within_radius() {
+    fn can_query_items_bottomup_radius() {
         let mut tree: KdTree<AX, u32, 4, 5, u32> = KdTree::new();
 
         let content_to_add: [([AX; 4], u32); 16] = [
@@ -90,7 +90,7 @@ mod tests {
         let radius = 0.2;
         let expected = linear_search(&content_to_add, &query_point, radius);
 
-        let mut result: Vec<_> = tree.within::<Manhattan>(&query_point, radius);
+        let mut result: Vec<_> = tree.bottomup::<Manhattan>(&query_point, radius);
         stabilize_sort(&mut result);
         assert_eq!(result, expected);
 
@@ -105,7 +105,7 @@ mod tests {
             let radius: f32 = 2.0;
             let expected = linear_search(&content_to_add, &query_point, radius);
 
-            let mut result: Vec<_> = tree.within::<Manhattan>(&query_point, radius);
+            let mut result: Vec<_> = tree.bottomup::<Manhattan>(&query_point, radius);
             stabilize_sort(&mut result);
 
             assert_eq!(result, expected);
@@ -113,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn can_query_items_within_radius_large_scale() {
+    fn can_query_items_bottomup_radius_large_scale() {
         const TREE_SIZE: usize = 100_000;
         const NUM_QUERIES: usize = 100;
         const RADIUS: f32 = 0.2;
@@ -135,7 +135,7 @@ mod tests {
         for query_point in query_points {
             let expected = linear_search(&content_to_add, &query_point, RADIUS);
 
-            let mut result: Vec<_> = tree.within::<Manhattan>(&query_point, RADIUS);
+            let mut result: Vec<_> = tree.bottomup::<Manhattan>(&query_point, RADIUS);
 
             // TODO: ensure that adjacent results with the same dist are sorted in order of item val
             //       to prevent occasional test failures due to the linear search returning items
